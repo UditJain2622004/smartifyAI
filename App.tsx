@@ -12,7 +12,7 @@ import OutfitControls from './components/OutfitControls';
 import OutfitDisplay from './components/OutfitDisplay';
 import { suggestOutfit } from './services/geminiService';
 import { Toaster, toast } from 'react-hot-toast';
-import { subscribeToAuth, signInWithGooglePopup, signOutUser, upsertUserProfile, getUserFaceImageForUser, getClosetItemsForUser, addClosetItem } from './services/firebase';
+import { subscribeToAuth, signInWithGooglePopup, signOutUser, upsertUserProfile, getUserFaceImageForUser, getClosetItemsForUser, addClosetItem, saveUserFaceImage } from './services/firebase';
 import { getFirestoreDb } from './services/firebase';
 import { doc, deleteDoc } from 'firebase/firestore';
 
@@ -212,6 +212,7 @@ const App: React.FC = () => {
             </div>
           </div>
         </main>
+        <Analytics />
       </div>
     );
   }
@@ -235,6 +236,7 @@ const App: React.FC = () => {
         <main className="mx-auto max-w-7xl px-4 md:px-8 py-10">
           <Landing onSignIn={async () => { await signInWithGooglePopup(); }} />
         </main>
+        <Analytics />
       </div>
     );
   }
@@ -258,17 +260,26 @@ const App: React.FC = () => {
         onOpenClosetItems={openClosetItemsPicker}
       />
       {/* Hidden inputs controlled by header quick actions */}
-      <input id={userPhotoInputRefId} type="file" accept="image/*" className="hidden" onChange={(e) => {
-        // Delegate to ClosetUploader handler by recreating conversion inline
+      <input id={userPhotoInputRefId} type="file" accept="image/*" className="hidden" onChange={async (e) => {
+        // Delegate to ClosetUploader behavior and also persist to Firestore
         const file = e.target.files?.[0];
         if (!file) return;
-        const reader = new FileReader();
-        reader.onload = () => {
-          const result = reader.result as string;
-          const data = result.split(',')[1] || '';
-          setUserImage({ data, mimeType: file.type });
-        };
-        reader.readAsDataURL(file);
+        const data: string = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve((reader.result as string).split(',')[1] || '');
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+        const image = { data, mimeType: file.type };
+        setUserImage(image);
+        const uid = (window as any).__currentUid || null;
+        if (uid) {
+          try {
+            await saveUserFaceImage(uid, image);
+          } catch (err) {
+            console.warn('[Header Upload] Failed to persist user face image');
+          }
+        }
       }} />
       <input id={closetItemsInputRefId} type="file" accept="image/*" multiple className="hidden" onChange={async (e) => {
         const files = e.target.files ? Array.from(e.target.files) : [];
@@ -375,6 +386,7 @@ const App: React.FC = () => {
           </button>
         </div>
       </div>
+      <Analytics />
     </div>
   );
 };
