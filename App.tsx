@@ -12,7 +12,7 @@ import OutfitControls from './components/OutfitControls';
 import OutfitDisplay from './components/OutfitDisplay';
 import { suggestOutfit } from './services/geminiService';
 import { Toaster, toast } from 'react-hot-toast';
-import { subscribeToAuth, signInWithGooglePopup, signOutUser, upsertUserProfile, getUserFaceImageForUser, getClosetItemsForUser, addClosetItem, saveUserFaceImage } from './services/firebase';
+import { subscribeToAuth, signInWithGooglePopup, signOutUser, upsertUserProfile, getUserFaceImageForUser, getClosetItemsForUser, addClosetItem, saveUserFaceImage, createGenerationLog, updateGenerationLog, incrementGenerationCounters } from './services/firebase';
 import { getFirestoreDb } from './services/firebase';
 import { doc, deleteDoc } from 'firebase/firestore';
 
@@ -71,18 +71,7 @@ const App: React.FC = () => {
   }, [isDark]);
 
   const handleSuggestOutfit = useCallback(async () => {
-    console.log('[Suggest] Triggered with state', {
-      hasUserImage: Boolean(userImage),
-      userImageMimeType: userImage?.mimeType,
-      userImageDataLength: userImage?.data?.length,
-      closetItemsCount: closetItems.length,
-      mode,
-      selectedItemIdsCount: selectedItemIds.size,
-      excludedItemIdsCount: excludedItemIds.size,
-      purpose,
-    });
     if (!userImage) {
-      console.warn('[Suggest] Aborting: no user image');
       toast.error('Please upload a photo of yourself first.');
       return;
     }
@@ -101,33 +90,65 @@ const App: React.FC = () => {
         return;
     }
 
+    const startedAtMs = Date.now();
     setIsLoading(true);
     setGeneratedOutfit(null);
-    // console.log('[Suggest] Calling suggestOutfit with', {
-    //   itemsToConsiderCount: itemsToConsider.length,
-    //   itemIds: itemsToConsider.map(i => i.id),
-    //   itemMimeTypes: itemsToConsider.map(i => i.mimeType),
-    //   purpose,
-    //   userImageMimeType: userImage.mimeType,
-    //   userImageDataPreview: userImage.data.slice(0, 32) + '...',
-    //   userImageDataLength: userImage.data.length,
-    // });
+    const uid = (window as any).__currentUid || null;
+    let logId: string | null = null;
+    if (uid) {
+      try {
+        // Create a generation log and increment started counters
+        logId = await createGenerationLog(uid, {
+          purpose,
+          mode,
+          itemCount: itemsToConsider.length,
+          selectedItemIds: Array.from(selectedItemIds),
+          excludedItemIds: Array.from(excludedItemIds),
+          startedAtMs,
+          modelsUsed: ['gemini-2.5-flash', 'gemini-2.5-flash-image-preview'],
+        });
+        await incrementGenerationCounters(uid, { started: 1 });
+      } catch {}
+    }
     try {
       const result = await suggestOutfit(userImage, itemsToConsider, purpose);
-      // console.log('[Suggest] Received result', {
-      //   imageDataUrlPrefix: result.image.slice(0, 30) + '...',
-      //   imageLength: result.image.length,
-      //   itemsReturned: result.items.map(i => ({ id: i.id, tags: i.tags })),
-      // });
       setGeneratedOutfit(result);
       toast.success('Here is your new outfit!');
+      if (uid && logId) {
+        try {
+          const durationMs = Date.now() - startedAtMs;
+          const base64Len = (result.image.split(',')[1] || '').length;
+          const approxBytes = Math.floor(base64Len * 0.75);
+          await updateGenerationLog(uid, logId, {
+            status: 'success',
+            itemsReturned: result.items.map(i => i.id),
+            itemsReturnedCount: result.items.length,
+            durationMs,
+            resultImageBase64Length: base64Len,
+            resultImageApproxBytes: approxBytes,
+            completedAt: new Date().toISOString(),
+          });
+          await incrementGenerationCounters(uid, { success: 1 });
+        } catch {}
+      }
     } catch (error) {
-      console.error('Failed to suggest outfit:', error);
       const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
       toast.error(`Could not generate outfit: ${errorMessage}`);
+      if (uid && logId) {
+        try {
+          const durationMs = Date.now() - startedAtMs;
+          await updateGenerationLog(uid, logId, {
+            status: 'error',
+            errorMessage,
+            errorName: error instanceof Error ? error.name : 'UnknownError',
+            durationMs,
+            failedAt: new Date().toISOString(),
+          });
+          await incrementGenerationCounters(uid, { error: 1 });
+        } catch {}
+      }
     } finally {
       setIsLoading(false);
-      // console.log('[Suggest] Finished');
     }
   }, [userImage, closetItems, purpose, mode, selectedItemIds, excludedItemIds]);
 

@@ -22,6 +22,7 @@ import {
   where,
   Timestamp,
   Firestore,
+  increment,
 } from 'firebase/firestore';
 
 // You can also use Vite env vars via import.meta.env, but we maintain a config object for clarity.
@@ -173,4 +174,70 @@ export const getClosetItemsForUser = async (
   return result;
 };
 
+// --- Logging & Metrics helpers ---
+export const createGenerationLog = async (
+  uid: string,
+  payload: Record<string, any>
+): Promise<string> => {
+  const db = getFirestoreDb();
+  const colRef = collection(db, 'users', uid, 'generationLogs');
+  const docRef = await addDoc(colRef, {
+    status: 'started',
+    createdAt: Timestamp.now(),
+    ...payload,
+  });
+  return docRef.id;
+};
 
+export const updateGenerationLog = async (
+  uid: string,
+  logId: string,
+  updates: Record<string, any>
+): Promise<void> => {
+  const db = getFirestoreDb();
+  const ref = doc(db, 'users', uid, 'generationLogs', logId);
+  await setDoc(ref, {
+    updatedAt: Timestamp.now(),
+    ...updates,
+  }, { merge: true });
+};
+
+export const incrementGenerationCounters = async (
+  uid: string,
+  fields: { started?: number; success?: number; error?: number }
+): Promise<void> => {
+  const db = getFirestoreDb();
+  const started = fields.started || 0;
+  const success = fields.success || 0;
+  const error = fields.error || 0;
+
+  // Per-user counters
+  const userCountersRef = doc(db, 'users', uid, 'metrics', 'counters');
+  await setDoc(userCountersRef, {
+    totalGenerations: increment(started),
+    totalSuccess: increment(success),
+    totalFailures: increment(error),
+    updatedAt: Timestamp.now(),
+  }, { merge: true });
+
+  // Global counters
+  const globalCountersRef = doc(db, 'analytics', 'counters');
+  await setDoc(globalCountersRef, {
+    totalGenerations: increment(started),
+    totalSuccess: increment(success),
+    totalFailures: increment(error),
+    updatedAt: Timestamp.now(),
+  }, { merge: true });
+
+  // Daily counters
+  const now = new Date();
+  const dayKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  const dailyCountersRef = doc(db, 'analytics', 'daily', dayKey);
+  await setDoc(dailyCountersRef, {
+    date: dayKey,
+    totalGenerations: increment(started),
+    totalSuccess: increment(success),
+    totalFailures: increment(error),
+    updatedAt: Timestamp.now(),
+  }, { merge: true });
+};
