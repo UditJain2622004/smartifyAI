@@ -12,7 +12,7 @@ import OutfitControls from './components/OutfitControls';
 import OutfitDisplay from './components/OutfitDisplay';
 import { suggestOutfit } from './services/geminiService';
 import { Toaster, toast } from 'react-hot-toast';
-import { subscribeToAuth, signInWithGooglePopup, signOutUser, upsertUserProfile, getUserFaceImageForUser, getClosetItemsForUser } from './services/firebase';
+import { subscribeToAuth, signInWithGooglePopup, signOutUser, upsertUserProfile, getUserFaceImageForUser, getClosetItemsForUser, addClosetItem } from './services/firebase';
 import { getFirestoreDb } from './services/firebase';
 import { doc, deleteDoc } from 'firebase/firestore';
 
@@ -47,7 +47,7 @@ const App: React.FC = () => {
           ]);
           if (face) setUserImage(face);
           if (Array.isArray(items)) setClosetItems(items);
-          // // console.log('[Auth] Loaded persisted assets', { faceLoaded: Boolean(face), closetCount: items?.length || 0 });
+          console.log('[Auth] Loaded persisted assets', { faceLoaded: Boolean(face), closetCount: items?.length || 0 });
         } catch (e) {
           console.warn('[Auth] Failed to load persisted assets');
         }
@@ -175,10 +175,12 @@ const App: React.FC = () => {
   const closetItemsInputRefId = 'header-closet-items-input';
 
   const openUserPhotoPicker = () => {
+    toast('Upload a clear, front-facing photo of yourself.', { icon: '📸' });
     const el = document.getElementById(userPhotoInputRefId) as HTMLInputElement | null;
     el?.click();
   };
   const openClosetItemsPicker = () => {
+    toast('Upload photos of your clothes and accessories (you can select multiple).', { icon: '🧥' });
     const el = document.getElementById(closetItemsInputRefId) as HTMLInputElement | null;
     el?.click();
   };
@@ -272,6 +274,7 @@ const App: React.FC = () => {
         const files = e.target.files ? Array.from(e.target.files) : [];
         if (files.length === 0) return;
         const newItems: ClosetItem[] = [];
+        const uid = (window as any).__currentUid || null;
         for (const file of files) {
           const reader = new FileReader();
           const data: string = await new Promise((resolve, reject) => {
@@ -279,14 +282,23 @@ const App: React.FC = () => {
             reader.onerror = reject;
             reader.readAsDataURL(file);
           });
-          newItems.push({
+          const newItem: ClosetItem = {
             id: `item-${Date.now()}-${Math.random().toString(36).slice(2,7)}`,
             image: `data:${file.type};base64,${data}`,
             mimeType: file.type,
             tags: [],
-          });
+          };
+          newItems.push(newItem);
+          if (uid) {
+            try {
+              await addClosetItem(uid, newItem);
+            } catch (err) {
+              console.warn('[Header Upload] Failed to persist closet item to Firestore');
+            }
+          }
         }
         setClosetItems(prev => [...prev, ...newItems]);
+        toast.success('Item(s) added to your closet!');
       }} />
       <main className="mx-auto max-w-7xl px-2 md:px-8 py-2 md:py-10">
         {/* <section className="mb-6 md:mb-10">

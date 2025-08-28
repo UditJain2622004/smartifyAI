@@ -118,11 +118,11 @@ const ClosetUploader: React.FC<ClosetUploaderProps> = ({ userImage, setUserImage
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <label htmlFor="user-photo-upload" className="cursor-pointer flex-1 text-center bg-gradient-to-r from-indigo-600 to-fuchsia-600 text-white px-3 py-2 rounded-full hover:from-indigo-700 hover:to-fuchsia-700 transition-colors text-sm font-semibold shadow">
+          <label htmlFor="user-photo-upload" onClick={() => toast('Upload a clear, front-facing photo of yourself.', { icon: '📸' })} className="cursor-pointer flex-1 text-center bg-gradient-to-r from-indigo-600 to-fuchsia-600 text-white px-3 py-2 rounded-full hover:from-indigo-700 hover:to-fuchsia-700 transition-colors text-sm font-semibold shadow">
             <span>Upload Your Photo</span>
           </label>
           <input id="user-photo-upload" type="file" className="hidden" accept="image/*" onChange={handleUserImageUpload} />
-          <label htmlFor="closet-item-upload" className="cursor-pointer flex-1 text-center bg-emerald-500 text-white px-3 py-2 rounded-full hover:bg-emerald-600 transition-colors text-sm font-semibold shadow">
+          <label htmlFor="closet-item-upload" onClick={() => toast('Upload photos of your clothes and accessories. You can select multiple.', { icon: '🧺' })} className="cursor-pointer flex-1 text-center bg-emerald-500 text-white px-3 py-2 rounded-full hover:bg-emerald-600 transition-colors text-sm font-semibold shadow">
           Add Items to Closet
           </label>
           <input id="closet-item-upload" type="file" className="hidden" accept="image/*" multiple onChange={handleClosetItemUpload} />

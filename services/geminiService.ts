@@ -156,9 +156,28 @@ const generateOutfitImageWithAI = async (
 
     const itemDescriptionsText = selectedItems.map(item => item.tags.join(', ')).join(' and ');
 
-    const prompt = `Virtually try on these clothes. The first image is the person, and the following images are the clothing items. Edit the first image to show the person wearing a complete outfit composed of: ${itemDescriptionsText}. Generate a full body image of the person wearing the outfit.
+    const prompt = `Virtually try on these clothes. The first image is the person; the following images are clothing items to apply. Edit the first image so the person is wearing a complete outfit composed ONLY of: ${itemDescriptionsText}. Generate a full-body image of the same person wearing these items.
 
-**CRITICAL INSTRUCTION:** You MUST preserve the person's original face, hair, and body shape from the first image. The background should also be preserved. The result must be a photorealistic image of the *same person* wearing the new clothes. You MUST put the provided clothes on the person in the first image. Do not change color, style of the clothes.`;
+STRICT RULES (follow ALL):
+- MUST REPLACE every original garment with the provided items. The original outfit must not remain visible in any part of the image.
+- MUST place the provided items on the body realistically: correct fit, drape, seams, and occlusion around arms, waist, legs, and neck.
+- MUST preserve the person's identity: face, hair, body shape, skin tone, pose, expression, and lighting from the first image.
+- MUST preserve the original background exactly. Do not blur, replace, or crop it.
+- MUST keep the provided items' colors, patterns, textures, and logos exactly as shown. Do not recolor or restyle.
+- MUST include the full person head-to-toe (no unexpected cropping) and keep natural proportions.
+- MUST ensure correct layering: tops over torso, bottoms at waist/legs, footwear on feet. Add realistic shadows and intersections where fabrics meet.
+- NEVER invent extra garments, accessories, or colors not present in the provided items.
+- NEVER modify the person's physical attributes, face, or hair.
+
+QUALITY TARGET:
+- Photorealistic output with clean edges and natural shadows; no artifacts, watermarks, or text overlays.
+- Clothing should look worn, not pasted: match perspective, wrinkles, and fabric behavior.
+
+IF ANY ITEM IS MISSING OR UNCHANGED AFTER YOUR FIRST PASS:
+- Internally refine and output the corrected image so that all original garments are replaced by the provided items.
+
+OUTPUT FORMAT:
+- Return only the edited image as inlineData with no additional text.`;
 
 
     const response = await ai.models.generateContent({
