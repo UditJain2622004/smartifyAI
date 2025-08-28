@@ -2,6 +2,7 @@
 import React from 'react';
 import { ClosetItem, Mode } from '../types';
 import { CheckCircleIcon, NoSymbolIcon, TagIcon } from './icons/EditorIcons';
+import { Plus } from 'lucide-react';
 
 interface ClosetGridProps {
   items: ClosetItem[];
@@ -73,10 +74,22 @@ const ClosetItemCard: React.FC<{
 const ClosetGrid: React.FC<ClosetGridProps> = ({ items, mode, selectedItemIds, excludedItemIds, onToggleSelection, onToggleExclusion, onDeleteItem, onOpenAddItems }) => {
   if (items.length === 0) {
     return (
+      <>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg md:text-xl font-semibold">Your Closet</h2>
+        <button
+          type="button"
+          onClick={onOpenAddItems}
+          className="inline-flex items-center rounded-full px-3 py-1.5 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 shadow"
+        >
+          <Plus />Add Items to closet
+        </button>
+      </div>
       <div className="text-center py-10 px-6 rounded-2xl border border-black/5 dark:border-white/10 bg-white/70 dark:bg-gray-900/50 backdrop-blur shadow-sm">
         <h3 className="text-lg font-medium">Your Closet is Empty</h3>
         <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">Upload some clothing items to get started!</p>
       </div>
+      </>
     );
   }
 

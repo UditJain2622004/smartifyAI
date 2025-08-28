@@ -3,6 +3,8 @@ import { ClosetItem } from '../types';
 import { UserIcon, PlusCircleIcon, ArrowUpOnSquareIcon } from './icons/EditorIcons';
 import { toast } from 'react-hot-toast';
 import { addClosetItem, saveUserFaceImage } from '../services/firebase';
+import { Plus } from 'lucide-react';
+
 
 interface ClosetUploaderProps {
   userImage: { data: string; mimeType: string } | null;
@@ -121,7 +123,7 @@ const ClosetUploader: React.FC<ClosetUploaderProps> = ({ userImage, setUserImage
           </label>
           <input id="user-photo-upload" type="file" className="hidden" accept="image/*" onChange={handleUserImageUpload} />
           <label htmlFor="closet-item-upload" className="cursor-pointer flex-1 text-center bg-emerald-500 text-white px-3 py-2 rounded-full hover:bg-emerald-600 transition-colors text-sm font-semibold shadow">
-            <span>Add Items to Closet</span>
+          Add Items to Closet
           </label>
           <input id="closet-item-upload" type="file" className="hidden" accept="image/*" multiple onChange={handleClosetItemUpload} />
         </div>
