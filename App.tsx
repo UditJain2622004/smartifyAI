@@ -68,7 +68,7 @@ const App: React.FC = () => {
   }, [isDark]);
 
   const handleSuggestOutfit = useCallback(async () => {
-    // // console.log('[Suggest] Triggered with state', {
+    console.log('[Suggest] Triggered with state', {
       hasUserImage: Boolean(userImage),
       userImageMimeType: userImage?.mimeType,
       userImageDataLength: userImage?.data?.length,
@@ -100,22 +100,22 @@ const App: React.FC = () => {
 
     setIsLoading(true);
     setGeneratedOutfit(null);
-    // // console.log('[Suggest] Calling suggestOutfit with', {
-      itemsToConsiderCount: itemsToConsider.length,
-      itemIds: itemsToConsider.map(i => i.id),
-      itemMimeTypes: itemsToConsider.map(i => i.mimeType),
-      purpose,
-      userImageMimeType: userImage.mimeType,
-      userImageDataPreview: userImage.data.slice(0, 32) + '...',
-      userImageDataLength: userImage.data.length,
-    });
+    // console.log('[Suggest] Calling suggestOutfit with', {
+    //   itemsToConsiderCount: itemsToConsider.length,
+    //   itemIds: itemsToConsider.map(i => i.id),
+    //   itemMimeTypes: itemsToConsider.map(i => i.mimeType),
+    //   purpose,
+    //   userImageMimeType: userImage.mimeType,
+    //   userImageDataPreview: userImage.data.slice(0, 32) + '...',
+    //   userImageDataLength: userImage.data.length,
+    // });
     try {
       const result = await suggestOutfit(userImage, itemsToConsider, purpose);
-      // // console.log('[Suggest] Received result', {
-        imageDataUrlPrefix: result.image.slice(0, 30) + '...',
-        imageLength: result.image.length,
-        itemsReturned: result.items.map(i => ({ id: i.id, tags: i.tags })),
-      });
+      // console.log('[Suggest] Received result', {
+      //   imageDataUrlPrefix: result.image.slice(0, 30) + '...',
+      //   imageLength: result.image.length,
+      //   itemsReturned: result.items.map(i => ({ id: i.id, tags: i.tags })),
+      // });
       setGeneratedOutfit(result);
       toast.success('Here is your new outfit!');
     } catch (error) {
@@ -124,7 +124,7 @@ const App: React.FC = () => {
       toast.error(`Could not generate outfit: ${errorMessage}`);
     } finally {
       setIsLoading(false);
-      // // console.log('[Suggest] Finished');
+      // console.log('[Suggest] Finished');
     }
   }, [userImage, closetItems, purpose, mode, selectedItemIds, excludedItemIds]);
 
@@ -159,7 +159,7 @@ const App: React.FC = () => {
     try {
       const db = getFirestoreDb();
       await deleteDoc(doc(db, 'users', uid, 'closet', itemId));
-      // // console.log('[Closet] Deleted item', itemId);
+      // console.log('[Closet] Deleted item', itemId);
     } catch (e) {
       console.warn('[Closet] Failed to delete item from Firestore');
     }

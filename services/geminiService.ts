@@ -29,10 +29,10 @@ export const suggestOutfit = async (
   // Step 1: Use Gemini text model to select items
   const selectedItems = await selectItemsWithAI(ai, closetItems, purpose);
   // console.log('[Gemini] selectItemsWithAI returned', {
-    requestedClosetCount: closetItems.length,
-    selectedCount: selectedItems.length,
-    selectedIds: selectedItems.map(i => i.id)
-  });
+//     requestedClosetCount: closetItems.length,
+//     selectedCount: selectedItems.length,
+//     selectedIds: selectedItems.map(i => i.id)
+//   });
   if (selectedItems.length === 0) {
     throw new Error("AI could not select an outfit. Try adding more items or changing the purpose.");
   }
@@ -83,10 +83,10 @@ const selectItemsWithAI = async (
     }
 
     // console.log('[Gemini] selectItemsWithAI sending parts', {
-        itemCount: closetItems.length,
-        partsLength: parts.length,
-        mimeTypes: closetItems.map(i => i.mimeType)
-    });
+    //     itemCount: closetItems.length,
+    //     partsLength: parts.length,
+    //     mimeTypes: closetItems.map(i => i.mimeType)
+    // });
 
     const response = await ai.models.generateContent({
         model: "gemini-2.5-flash",
@@ -148,11 +148,11 @@ const generateOutfitImageWithAI = async (
     };
 
     // console.log('[Gemini] Building request parts', {
-      userImageMimeType: userImage.mimeType,
-      userImageDataLen: userImage.data?.length,
-      clothingPartsCount: clothingImageParts.length,
-      clothingMimeTypes: selectedItems.map(i => i.mimeType)
-    });
+    //   userImageMimeType: userImage.mimeType,
+    //   userImageDataLen: userImage.data?.length,
+    //   clothingPartsCount: clothingImageParts.length,
+    //   clothingMimeTypes: selectedItems.map(i => i.mimeType)
+    // });
 
     const itemDescriptionsText = selectedItems.map(item => item.tags.join(', ')).join(' and ');
 
@@ -175,10 +175,10 @@ const generateOutfitImageWithAI = async (
         },
     });
     // console.log('[Gemini] Response candidates', {
-      candidateCount: response.candidates?.length,
-      firstCandidateParts: response.candidates?.[0]?.content?.parts?.length,
-      safety: response.candidates?.[0]?.safetyRatings,
-    });
+    //   candidateCount: response.candidates?.length,
+    //   firstCandidateParts: response.candidates?.[0]?.content?.parts?.length,
+    //   safety: response.candidates?.[0]?.safetyRatings,
+    // });
 
     for (const part of response.candidates[0].content.parts) {
         if (part.inlineData) {

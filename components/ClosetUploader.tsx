@@ -34,10 +34,10 @@ const ClosetUploader: React.FC<ClosetUploaderProps> = ({ userImage, setUserImage
         }
         const imageData = await fileToBase64(file);
         // console.log('[Uploader] User image processed', {
-          mimeType: imageData.mimeType,
-          dataLength: imageData.data?.length,
-          dataPreview: imageData.data?.slice(0, 32) + '...'
-        });
+        //   mimeType: imageData.mimeType,
+        //   dataLength: imageData.data?.length,
+        //   dataPreview: imageData.data?.slice(0, 32) + '...'
+        // });
         setUserImage(imageData);
         try {
           setSaving(true);
