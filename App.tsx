@@ -1,4 +1,7 @@
 
+import { Analytics } from '@vercel/analytics/react';
+
+
 import React, { useState, useCallback, useEffect } from 'react';
 import { ClosetItem, Mode } from './types';
 import Header from './components/Header';
