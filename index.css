@@ -1,0 +1,22 @@
+@import "tailwindcss";
+
+/* Base tweaks */
+:root {
+  color-scheme: light dark;
+}
+html, body {
+  height: 100%;
+}
+#root {
+  min-height: 100%;
+}
+
+/* Smooth scroll for nicer UX */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Guard against horizontal overflow from transforms/gradients */
+body {
+  overflow-x: hidden;
+}

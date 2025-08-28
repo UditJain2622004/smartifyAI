@@ -1,0 +1,5 @@
+{
+  "name": "SmartifyAI",
+  "description": "An AI-powered web application that simplifies your daily dressing routine. Upload items from your closet, specify an occasion, and let the AI generate a complete outfit for you, visualized on your own photo.",
+  "requestFramePermissions": []
+}
