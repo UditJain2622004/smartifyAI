@@ -28,12 +28,12 @@ const ClosetUploader: React.FC<ClosetUploaderProps> = ({ userImage, setUserImage
     const file = event.target.files?.[0];
     if (file) {
       try {
-        console.log('[Uploader] User image selected', { name: file.name, type: file.type, size: file.size });
+        // console.log('[Uploader] User image selected', { name: file.name, type: file.type, size: file.size });
         if (!file.type.startsWith('image/')) {
           console.warn('[Uploader] Selected file is not an image');
         }
         const imageData = await fileToBase64(file);
-        console.log('[Uploader] User image processed', {
+        // console.log('[Uploader] User image processed', {
           mimeType: imageData.mimeType,
           dataLength: imageData.data?.length,
           dataPreview: imageData.data?.slice(0, 32) + '...'
@@ -45,9 +45,9 @@ const ClosetUploader: React.FC<ClosetUploaderProps> = ({ userImage, setUserImage
           const uid = (window as any).__currentUid || null; // optional signal if we wire later in App
           if (uid) {
             await saveUserFaceImage(uid, imageData);
-            console.log('[Uploader] User face image saved to Firestore');
+            // console.log('[Uploader] User face image saved to Firestore');
           } else {
-            console.log('[Uploader] Skip saving face image (no user signed in)');
+            // console.log('[Uploader] Skip saving face image (no user signed in)');
           }
         } finally {
           setSaving(false);
@@ -69,9 +69,9 @@ const ClosetUploader: React.FC<ClosetUploaderProps> = ({ userImage, setUserImage
 
       const newItems: ClosetItem[] = [];
       for (const file of files) {
-        console.log('[Uploader] Closet item selected', { name: file.name, type: file.type, size: file.size });
+        // console.log('[Uploader] Closet item selected', { name: file.name, type: file.type, size: file.size });
         const { data, mimeType } = await fileToBase64(file);
-        console.log('[Uploader] Closet item processed', { mimeType, dataLength: data?.length });
+        // console.log('[Uploader] Closet item processed', { mimeType, dataLength: data?.length });
         const newClosetItem: ClosetItem = {
           id: `item-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
           image: `data:${mimeType};base64,${data}`,
@@ -81,11 +81,11 @@ const ClosetUploader: React.FC<ClosetUploaderProps> = ({ userImage, setUserImage
         newItems.push(newClosetItem);
         if (uid) {
           await addClosetItem(uid, newClosetItem);
-          console.log('[Uploader] Closet item saved to Firestore', newClosetItem.id);
+          // console.log('[Uploader] Closet item saved to Firestore', newClosetItem.id);
         }
       }
       setClosetItems(prev => [...prev, ...newItems]);
-      if (!uid) console.log('[Uploader] Skip saving closet items (no user signed in)');
+      if (!uid) // console.log('[Uploader] Skip saving closet items (no user signed in)');
       setTags('');
       // event.currentTarget.value = '';
       toast.success('Item(s) added to your closet!');

@@ -28,7 +28,7 @@ export const suggestOutfit = async (
 
   // Step 1: Use Gemini text model to select items
   const selectedItems = await selectItemsWithAI(ai, closetItems, purpose);
-  console.log('[Gemini] selectItemsWithAI returned', {
+  // console.log('[Gemini] selectItemsWithAI returned', {
     requestedClosetCount: closetItems.length,
     selectedCount: selectedItems.length,
     selectedIds: selectedItems.map(i => i.id)
@@ -39,7 +39,7 @@ export const suggestOutfit = async (
   
   // Step 2: Use Gemini image preview model to generate the outfit image
   const generatedImage = await generateOutfitImageWithAI(ai, userImage, selectedItems);
-  console.log('[Gemini] generateOutfitImageWithAI returned image length', generatedImage?.length);
+  // console.log('[Gemini] generateOutfitImageWithAI returned image length', generatedImage?.length);
 
   return {
     image: `data:image/png;base64,${generatedImage}`,
@@ -51,7 +51,7 @@ export const suggestOutfit = async (
 const mockSuggestOutfit = async (
   closetItems: ClosetItem[]
 ): Promise<{ image: string; items: ClosetItem[] }> => {
-  console.log("Using mock data for outfit suggestion.");
+  // console.log("Using mock data for outfit suggestion.");
   await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate network delay
 
   const shuffled = [...closetItems].sort(() => 0.5 - Math.random());
@@ -72,7 +72,8 @@ const selectItemsWithAI = async (
     closetItems: ClosetItem[], 
     purpose: string
 ): Promise<ClosetItem[]> => {
-    const headerText = `You will be shown a set of clothing items as images. Each image is preceded by a text line that includes an 'id' and 'tags' for that item. Purpose: "${purpose}". Select a coherent outfit by choosing one top, one bottom, and one pair of shoes if available. Respond ONLY with JSON following the provided schema.`;
+    const headerText = `You will be shown a set of clothing items as images. Each image is preceded by a text line that includes an 'id' and maybe some 'tags' for that item. You may also be provided with the purpose for which you have decide the outfit, like for a wedding or a casual day. Always keep that in mind. If no purpose is given, suggest the best outfit overall. Select a coherent outfit by choosing one top, one bottom, and one pair of shoes if available. Respond ONLY with JSON following the provided schema.
+    ${purpose.length>0 ? `Purpose: "${purpose}".` : ""}`;
 
     const parts: Array<any> = [{ text: headerText }];
     for (const item of closetItems) {
@@ -81,7 +82,7 @@ const selectItemsWithAI = async (
         parts.push({ inlineData: { data, mimeType } });
     }
 
-    console.log('[Gemini] selectItemsWithAI sending parts', {
+    // console.log('[Gemini] selectItemsWithAI sending parts', {
         itemCount: closetItems.length,
         partsLength: parts.length,
         mimeTypes: closetItems.map(i => i.mimeType)
@@ -111,7 +112,7 @@ const selectItemsWithAI = async (
     });
 
     const jsonResponse = JSON.parse(response.text);
-    console.log('[Gemini] selectItemsWithAI response', jsonResponse);
+    // console.log('[Gemini] selectItemsWithAI response', jsonResponse);
     const selectedIds = new Set(jsonResponse.selected_item_ids || []);
     
     return closetItems.filter(item => selectedIds.has(item.id));
@@ -146,7 +147,7 @@ const generateOutfitImageWithAI = async (
         },
     };
 
-    console.log('[Gemini] Building request parts', {
+    // console.log('[Gemini] Building request parts', {
       userImageMimeType: userImage.mimeType,
       userImageDataLen: userImage.data?.length,
       clothingPartsCount: clothingImageParts.length,
@@ -157,7 +158,7 @@ const generateOutfitImageWithAI = async (
 
     const prompt = `Virtually try on these clothes. The first image is the person, and the following images are the clothing items. Edit the first image to show the person wearing a complete outfit composed of: ${itemDescriptionsText}. Generate a full body image of the person wearing the outfit.
 
-**CRITICAL INSTRUCTION:** You MUST preserve the person's original face, hair, and body shape from the first image. The background should also be preserved. The result must be a photorealistic image of the *same person* wearing the new clothes.`;
+**CRITICAL INSTRUCTION:** You MUST preserve the person's original face, hair, and body shape from the first image. The background should also be preserved. The result must be a photorealistic image of the *same person* wearing the new clothes. You MUST put the provided clothes on the person in the first image. Do not change color, style of the clothes.`;
 
 
     const response = await ai.models.generateContent({
@@ -173,7 +174,7 @@ const generateOutfitImageWithAI = async (
             responseModalities: [Modality.IMAGE, Modality.TEXT],
         },
     });
-    console.log('[Gemini] Response candidates', {
+    // console.log('[Gemini] Response candidates', {
       candidateCount: response.candidates?.length,
       firstCandidateParts: response.candidates?.[0]?.content?.parts?.length,
       safety: response.candidates?.[0]?.safetyRatings,
